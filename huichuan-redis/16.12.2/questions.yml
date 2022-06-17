@@ -1,0 +1,180 @@
+rancher_max_version: 2.6.2
+labels:
+  io.cattle.role: project # options are cluster/project
+categories:
+- KeyValue
+- Database
+questions:
+- variable: architecture
+  default: "replication"
+  description: "Enable master-slave topology"
+  label: Enable Master-Slave Topology
+  type: enum
+  show_subquestion_if: replication
+  group: "Redis Master Settings"
+  options:
+  - "replication"
+  - "standalone"
+  subquestions:
+  - variable: replicaCount
+    default: "1"
+    required: true
+    type: int
+    description: "Set the Number of Redis Slave"
+    label: Number of Redis Slave
+- variable: auth.enabled
+  default: "true"
+  description: "Use password authentication"
+  type: boolean
+  required: true
+  label: Enable Redis Password
+  show_subquestion_if: true
+  group: "Redis Master Settings"
+  subquestions:
+  - variable: global.redis.password
+    default: ""
+    required: true
+    description: "password will be auto-generated if not specified"
+    type: password
+    label: Redis Password
+- variable: master.persistence.enabled
+  default: false
+  description: "Use persistent storage"
+  type: boolean
+  required: true
+  label: Persistent Volume Enabled
+  show_subquestion_if: true
+  group: "Redis Master Settings"
+  subquestions:
+  - variable: master.persistence.accessModes
+    default: ""
+    description: "Persistent Volume access modes"
+    type: enum
+    label: Persistent Volume access modes
+    options:
+    - "ReadWriteOnce"
+    - "ReadWriteMany"
+    - "ReadOnlyMany"
+  - variable: master.persistence.size
+    default: "8Gi"
+    description: "Persistent volume size"
+    type: string
+    label: Persistent Volume Size
+  - variable: master.persistence.storageClass
+    default: ""
+    description: "If undefined or null, uses the default StorageClass. Defaults to null."
+    type: storageclass
+    label: Default Storage Class
+  - variable: master.persistence.existingClaim
+    default: ""
+    description: "If not empty, uses the specified existing PVC instead of creating new one"
+    type: pvc
+    label: Existing Persistent Volume Claim for Redis Master
+- variable: metrics.enabled
+  default: false
+  description: "Start a side-car prometheus exporter"
+  label: Enable Redis Metrics Exporter
+  type: boolean
+  group: "Redis Master Settings"
+- variable: master.service.type
+  default: "ClusterIP"
+  description: "Redis master service type"
+  type: enum
+  group: "Redis Master Settings"
+  options:
+  - "ClusterIP"
+  - "NodePort"
+  - "LoadBalancer"
+  required: true
+  label: Redis Master Service Type
+  show_subquestion_if: "NodePort"
+  subquestions:
+  - variable: master.service.nodePorts.redis
+    default: ""
+    description: "NodePort port number(to set explicitly, choose port between 30000-32767)"
+    type: int
+    min: 30000
+    max: 32767
+    label: Redis Master Service NodePort number
+# slave config
+- variable: replica.persistence.enabled
+  default: false
+  description: "Use persistent storage of slave mode"
+  type: boolean
+  required: true
+  label: Slave Persistent Volume Enabled
+  show_subquestion_if: true
+  group: "Redis Slave Settings"
+  subquestions:
+  - variable: replica.persistence.accessModes
+    default: ""
+    description: "Persistent Volume access modes"
+    type: enum
+    label: Persistent Volume access modes
+    options:
+    - "ReadWriteOnce"
+    - "ReadWriteMany"
+    - "ReadOnlyMany"
+  - variable: replica.persistence.size
+    default: "8Gi"
+    description: "Persistent volume size"
+    type: string
+    label: Slave Persistent Volume Size
+  - variable: replica.persistence.storageClass
+    default: ""
+    description: "If undefined or null, uses the default StorageClass. Defaults to null."
+    type: storageclass
+    label: Slave Default Storage Class
+  - variable: replica.persistence.existingClaim
+    default: ""
+    description: "If not empty, uses the specified existing PVC instead of creating new one"
+    type: pvc
+    label: Existing Persistent Volume Claim for Redis Master
+- variable: replica.service.type
+  default: "ClusterIP"
+  description: "Redis slave service type"
+  type: enum
+  group: "Redis Slave Settings"
+  options:
+  - "ClusterIP"
+  - "NodePort"
+  - "LoadBalancer"
+  required: true
+  label: Redis Slave Service Type
+  show_subquestion_if: "NodePort"
+  subquestions:
+  - variable: replica.service.nodePorts.redis
+    default: ""
+    description: "NodePort port number(to set explicitly, choose port between 30000-32767)"
+    type: int
+    min: 30000
+    max: 32767
+    label: Redis Slave Service NodePort number
+# sentinel config
+- variable: sentinel.enabled
+  default: false
+  description: "Enable redis sentinel mode"
+  type: boolean
+  required: true
+  label: Enable Sentinel Containers
+  show_subquestion_if: true
+  group: "Redis Sentinel Settings"
+  subquestions:
+  - variable: auth.sentinel
+    default: "true"
+    description: "Use password for sentinel containers"
+    type: boolean
+    label: Enable Sentinel Password
+    required: true
+  - variable: sentinel.masterSet
+    default: "mymaster"
+    description: "Name of the sentinel master set"
+    type: string
+    label: MasterSet Name
+    required: true
+  - variable: sentinel.quorum
+    default: 2
+    description: "Quorum for electing a new master"
+    type: int
+    label: Master Electing Quorum
+    required: true
